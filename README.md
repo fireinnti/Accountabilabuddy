@@ -125,9 +125,7 @@ Preview:
 
 ![Import example](public/example-image-import.png)
 
-<video controls width="640">
-  <source src="public/screenrecording.mov" type="video/quicktime">
-  Your browser does not support the video tag. Download: [screenrecording.mov](public/screenrecording.mov)
+<video src="public/screenrecording.mp4" controls width="640">
 </video>
 
 How to run locally to reproduce the demo:
