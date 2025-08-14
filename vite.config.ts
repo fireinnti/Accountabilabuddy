@@ -23,6 +23,13 @@ export default defineConfig({
   },
   esbuild: {
     target: 'esnext',
+    supported:{'top-level-await': true}, // enables top-level await
+  },
+  build: {
+    target: 'esnext', // enables top-level await
+    modulePreload: {
+      polyfill: false, // avoids polyfill for module preload
+    },
   },
   server: {
     proxy: {
