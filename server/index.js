@@ -1,6 +1,10 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import express from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import db, { createTodo, createUser, deleteTodo, getPublicTodosFromFriends, getTodosForUser, getUserByCredentials, getUserById, getUserByUsername, updateTodo } from './turso.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const app = express()
 const PORT = process.env.PORT || 44000
@@ -165,13 +169,13 @@ app.post('/api/friends', async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
     // Add friend relationship
-    console.log('[POST /api/friends] Adding friend relationship:', { user_id:selfUser, friend_id: friendUser.id })
+    console.log('[POST /api/friends] Adding friend relationship:', { user_id:selfUser, friend_user_id: friendUser.id })
     await db.execute({
-      sql: 'INSERT INTO friends (user_id, friend_id, created_at) VALUES (?, ?, ?)',
+      sql: 'INSERT INTO friends (user_id, friend_user_id, created_at) VALUES (?, ?, ?)',
       args: [selfUser.id, friendUser.id, new Date().toISOString()],
     })
-    console.log('[POST /api/friends] Friend relationship added:', { user_id, friend_id: friendUser.id })
-    res.json({ success: true, friend_id: friendUser.id, friend_username })
+    console.log('[POST /api/friends] Friend relationship added:', { user_id, friend_user_id: friendUser.id })
+    res.json({ success: true, friend_user_id: friendUser.id, friend_username })
   } catch (err) {
     console.error('[POST /api/friends] Error:', err)
     if (err.message && err.message.includes('UNIQUE')) {
@@ -180,6 +184,14 @@ app.post('/api/friends', async (req, res) => {
       res.status(500).json({ error: err.message })
     }
   }
+})
+
+// Serve static files from Vite build
+app.use(express.static(path.join(__dirname, '../dist')))
+
+// Fallback to index.html for SPA routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'))
 })
 
 app.listen(PORT, () => {

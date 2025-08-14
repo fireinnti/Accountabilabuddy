@@ -11,5 +11,5 @@ FROM node:20
 WORKDIR /app
 COPY --from=builder /app /app
 ENV NODE_ENV=production
-EXPOSE 4000
+EXPOSE 44000
 CMD ["node", "server/index.js"]
