@@ -1,16 +1,25 @@
 import { createClient } from "@libsql/client";
 import 'dotenv/config'
 
-// make sure to get env from Branden
+// Environment configuration
 const TURSO_URL = process.env.TURSO_URL
-const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN 
+const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN
 
-const db = new createClient({
-  url: TURSO_URL,
-  authToken: TURSO_AUTH_TOKEN,
-})
+const isDbConfigured = !!TURSO_URL
+
+let db
+if (!isDbConfigured) {
+  // Fallback to local file DB so container can still run without Turso secrets
+  const fallbackUrl = 'file:mydb.sqlite'
+  console.warn('[DB] TURSO_URL not set. Falling back to local SQLite file:', fallbackUrl)
+  db = createClient({ url: fallbackUrl })
+} else {
+  db = createClient({ url: TURSO_URL, authToken: TURSO_AUTH_TOKEN })
+  console.log('[DB] Connected using TURSO_URL:', TURSO_URL)
+}
 
 export default db
+export { isDbConfigured }
 
 // User API
 export async function createUser({ id, username, password }) {

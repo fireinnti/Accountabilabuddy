@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import fs from 'node:fs'
 import express from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import db, { createTodo, createUser, deleteTodo, getPublicTodosFromFriends, getTodosForUser, getUserByCredentials, getUserById, getUserByUsername, updateTodo } from './turso.js'
@@ -7,13 +8,17 @@ import db, { createTodo, createUser, deleteTodo, getPublicTodosFromFriends, getT
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const app = express()
-const PORT = process.env.PORT || 44000
+// Align port with Fly.io (fly.toml sets PORT=4000)
+const PORT = Number(process.env.PORT) || 44000
 
 app.use(express.json())
 
-app.get('/', (req, res) => {
-  res.send('Hello from Express API!')
+// Simple health check (for Fly or other platforms)
+app.get('/healthz', (_req, res) => {
+  res.json({ ok: true, uptime: process.uptime() })
 })
+
+// NOTE: Removed explicit app.get('/') handler so that the SPA index.html is served instead.
 
 app.get('/dbinfo', async (req, res) => {
   try {
@@ -163,18 +168,19 @@ app.post('/api/friends', async (req, res) => {
       console.log('[POST /api/friends] Friend username not found:', friend_username)
       return res.status(404).json({ error: 'Friend username not found' })
     }
-    const selfUser = await getUserByUsername(user_id)
+    // Get self user by id (was previously using username lookup incorrectly)
+    const selfUser = await getUserById(user_id)
     if (!selfUser) {
-      console.log('[POST /api/friends] User not found:', user_id)
+      console.log('[POST /api/friends] User not found by id:', user_id)
       return res.status(404).json({ error: 'User not found' })
     }
     // Add friend relationship
-    console.log('[POST /api/friends] Adding friend relationship:', { user_id:selfUser, friend_user_id: friendUser.id })
+    console.log('[POST /api/friends] Adding friend relationship:', { user_id: selfUser.id, friend_user_id: friendUser.id })
     await db.execute({
       sql: 'INSERT INTO friends (user_id, friend_user_id, created_at) VALUES (?, ?, ?)',
       args: [selfUser.id, friendUser.id, new Date().toISOString()],
     })
-    console.log('[POST /api/friends] Friend relationship added:', { user_id, friend_user_id: friendUser.id })
+    console.log('[POST /api/friends] Friend relationship added:', { user_id: selfUser.id, friend_user_id: friendUser.id })
     res.json({ success: true, friend_user_id: friendUser.id, friend_username })
   } catch (err) {
     console.error('[POST /api/friends] Error:', err)
@@ -186,12 +192,20 @@ app.post('/api/friends', async (req, res) => {
   }
 })
 
-// Serve static files from Vite build
-app.use(express.static(path.join(__dirname, '../dist')))
+// Serve static files from Vite build (after API routes are defined)
+const distDir = path.join(__dirname, '../dist')
+if (!fs.existsSync(distDir)) {
+  console.warn('[STATIC] dist directory does not exist at runtime:', distDir)
+} else {
+  console.log('[STATIC] Serving dist directory:', distDir)
+}
+app.use(express.static(distDir))
 
-// Fallback to index.html for SPA routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'))
+// Fallback to index.html for SPA routes (non-API)
+// NOTE: Express 5 + path-to-regexp v8 does not accept bare "*" pattern; use a catch-all middleware instead.
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) return next()
+  res.sendFile(path.join(distDir, 'index.html'))
 })
 
 app.listen(PORT, () => {

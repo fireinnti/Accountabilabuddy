@@ -63,6 +63,16 @@ Accountabilabuddy is a modern full-stack demo app for managing tasks and account
 
 ---
 
+## Environment Variables
+
+Set these for real Turso connectivity (e.g. in Fly secrets or local .env):
+- TURSO_URL
+- TURSO_AUTH_TOKEN
+
+If they are omitted the server now falls back to a local SQLite file `mydb.sqlite` (read/write) inside the container / project root so the app can still start for demo purposes.
+
+---
+
 ## Demo Practices & Limitations
 
 - **Authentication:** Login/logout is required to access personal and friends' data. No password hashing or session tokens—this is for demo only.
