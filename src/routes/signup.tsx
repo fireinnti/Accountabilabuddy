@@ -36,6 +36,7 @@ function SignupPage() {
         await dataApi.createUser({ username: username.trim(), password: password.trim() })
         user = await dataApi.loginUser({ username: username.trim(), password: password.trim() })
       }
+      // @ts-expect-error
       login(user.username)
       navigate({ to: '/' })
     } catch (err: any) {
