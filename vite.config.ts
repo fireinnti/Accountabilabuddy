@@ -21,6 +21,9 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  esbuild: {
+    target: 'esnext',
+  },
   server: {
     proxy: {
         '/api': {
