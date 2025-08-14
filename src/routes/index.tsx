@@ -7,6 +7,7 @@ import TodoBoard from '@/components/TodoBoard'
 import FriendsTodosBoard from '@/components/FriendsTodosBoard'
 import { getUser } from '@/auth'
 import { dataApi } from '@/dataApi'
+import ImportTodos from '@/components/ImportTodos'
 
 // Extend Todo type for friendsTodos to allow username and user_id
 export interface FriendTodo extends Todo {
@@ -232,6 +233,9 @@ function Board() {
         setVisibility={setVisibility}
         onCreate={onCreate}
       />
+      {isLoggedIn && (
+        <ImportTodos userId={userId} />
+      )}
       <TodoBoard grouped={grouped} onMove={onMove} onDelete={onDelete} onEdit={onEdit} />
       {isLoggedIn && friendsTodos.length > 0 && (
         <FriendsTodosBoard friendsTodos={friendsTodos} />

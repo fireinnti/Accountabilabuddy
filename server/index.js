@@ -11,7 +11,8 @@ const app = express()
 // Align port with Fly.io (fly.toml sets PORT=4000)
 const PORT = Number(process.env.PORT) || 44000
 
-app.use(express.json())
+// Allow larger JSON payloads for base64-encoded images
+app.use(express.json({ limit: '10mb' }))
 
 // Simple health check (for Fly or other platforms)
 app.get('/healthz', (_req, res) => {
@@ -189,6 +190,71 @@ app.post('/api/friends', async (req, res) => {
     } else {
       res.status(500).json({ error: err.message })
     }
+  }
+})
+
+// Image import endpoint: accepts { image: 'data:<mime>;base64,...' }
+app.post('/api/import-image', async (req, res) => {
+  const { image } = req.body
+  if (!image) return res.status(400).json({ error: 'Missing image' })
+  if (!process.env.OPENAI_API_KEY) return res.status(500).json({ error: 'OPENAI_API_KEY not configured on server' })
+
+  try {
+    // Call OpenAI Responses API (multimodal) and ask it to extract todos as JSON
+    const openaiRes = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        input: [
+          {
+            role: 'user',
+            content: [
+              { type: 'input_text', text: "Extract todos from the provided image. Return ONLY a JSON array of objects where each object has 'title' and 'description' fields (description may be empty). Example: [{\"title\":\"Buy milk\",\"description\":\"2%\"}]" },
+              { type: 'input_image', image_url: image },
+            ],
+          },
+        ],
+      }),
+    })
+
+    const body = await openaiRes.json()
+
+    // Attempt to pull text from the OpenAI response
+    let text = ''
+    if (body.output_text) text = body.output_text
+    else if (body.output && Array.isArray(body.output) && body.output.length > 0) {
+      // Find first output_text-like piece
+      const out = body.output[0]
+      if (out && out.content) {
+        const t = out.content.find(c => c.type === 'output_text' || c.type === 'text')
+        text = t?.text || JSON.stringify(body)
+      } else {
+        text = JSON.stringify(body)
+      }
+    } else {
+      text = JSON.stringify(body)
+    }
+
+    // Try to parse JSON array from text
+    let todos = []
+    try {
+      todos = JSON.parse(text)
+    } catch (e) {
+      // Fallback: extract first JSON array substring
+      const m = text.match(/\[.*\]/s)
+      if (m) {
+        try { todos = JSON.parse(m[0]) } catch (e) { todos = [] }
+      }
+    }
+
+    return res.json({ todos })
+  } catch (err) {
+    console.error('[IMPORT] Error calling OpenAI:', err)
+    return res.status(500).json({ error: err.message || String(err) })
   }
 })
 
