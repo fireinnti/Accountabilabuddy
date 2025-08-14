@@ -103,6 +103,8 @@ function Board() {
       if (isLoggedIn) queryClient.invalidateQueries({ queryKey: ['todos', userId] })
     },
   })
+
+  
   const updateMutation = useMutation<Todo, unknown, { id: string, patch: Partial<Pick<Todo, 'title' | 'description'>> }>({
     mutationFn: (args) => {
       if (isLoggedIn) {
@@ -124,6 +126,8 @@ function Board() {
       if (isLoggedIn) queryClient.invalidateQueries({ queryKey: ['todos', userId] })
     },
   })
+
+
   const deleteMutation = useMutation<Todo, unknown, string>({
     mutationFn: (id) => {
       if (isLoggedIn) {
@@ -143,6 +147,7 @@ function Board() {
       if (isLoggedIn) queryClient.invalidateQueries({ queryKey: ['todos', userId] })
     },
   })
+
   const moveMutation = useMutation<Todo, unknown, { id: string, to: TodoState }>({
     mutationFn: (args) => {
       if (isLoggedIn) {
