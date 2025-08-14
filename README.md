@@ -101,7 +101,7 @@ Accountabilabuddy is a modern full-stack demo app for managing tasks and account
 
 ```bash
 npm install
-npm run start
+npm run dev
 ```
 
 ## Building For Production
@@ -114,6 +114,11 @@ npm run build
 
 ```bash
 npm run test
+```
+
+## Serve the backend
+```bash
+npm run backend
 ```
 
 ## Styling
