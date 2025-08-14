@@ -257,5 +257,17 @@ These changes will make the app more secure, robust, and production-ready while 
 
 ---
 
+## Test Accounts
+
+For convenience the following demo users exist in the remote database and can be used for quick sign-in during demos:
+
+- username: `branden` — password: `ham`
+- username: `brendan` — password: `ham`
+- username: `philip` — password: `testpass`
+
+These accounts are intended for development/demo purposes only. Do not use these credentials for any real accounts and do not expose them in production environments.
+
+---
+
 ## Copilot for Readme
 I enjoy using AI for documentation, keeps things fresh.
