@@ -119,13 +119,13 @@ If they are omitted the server now falls back to a local SQLite file `mydb.sqlit
 The repository includes a screenshot and a short screen recording that show the import-from-image flow:
 
 - `public/example-image-import.png` — screenshot of the import UI and preview.
-- `public/screenrecording.mov` — short recording showing selecting an image and creating todos.
+- `public/screenrecording.mp4` — short recording showing selecting an image and creating todos.
 
 Preview:
 
 ![Import example](public/example-image-import.png)
 
-<video src="public/screenrecording.mp4" controls width="640">
+<video src="https://github.com/user-attachments/assets/293aded1-8d11-41a4-bfbb-563c2eb07824" controls width="640">
 </video>
 
 How to run locally to reproduce the demo:
