@@ -145,6 +145,5 @@ npm run check
 
 ---
 
-## Demo Files
-
-Files prefixed with `demo` can be safely deleted. They are for experimentation and learning.
+## Copilot for Readme
+I enjoy using AI for documentation, keeps things fresh.
